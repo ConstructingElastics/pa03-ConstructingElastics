@@ -89,38 +89,71 @@ std::ostream& operator<<(std::ostream& out, const Connection& c) {
 
 // Graph -----------------------------------------------------------------------------------------------------------------------------------
 
+
 // STUDENT TODO: IMPLEMENT
 void Graph::updateNode(int id, NodeInfo n) {
-    if (/* id is out of bounds — check if id is a valid index into nodes */ true) {
+    if (id >= nodes.size()) {
         cout << "Attempting to update node with id: " << id << " but node does not exist" << endl;
         return;
     }
 
-    return; //stub
+    NodeInfo* newNode = new NodeInfo;
+    newNode->activationFunction = n.activationFunction;
+    newNode->activationDerivative = n.activationDerivative;
+    newNode->preActivationValue = n.preActivationValue;
+    newNode->bias = n.bias;
+    newNode->delta = n.delta;
+
+    if (nodes.at(id)){
+        NodeInfo* oldnode = nodes.at(id);
+        delete oldnode;
+    }
+    
+    nodes[id] = newNode;
 }
 
 // STUDENT TODO: IMPLEMENT
 NodeInfo* Graph::getNode(int id) const {
-    return nullptr; //stub
+    if (id >= nodes.size()) {
+        cout << "Attempting to get node with id: " << id << " but node does not exist" << endl;
+        return nullptr;
+    }
+
+    return nodes.at(id); 
 }
 
 // STUDENT TODO: IMPLEMENT
 void Graph::updateConnection(int v, int u, double w) {
-    if (/* v is out of bounds — check if v is a valid index into nodes */ true) {
+    if (v >= nodes.size()) {
         cerr << "Attempting to update connection between " << v << " and " << u << " with weight " << w << " but " << v << " does not exist" << endl;
         exit(1);
     }
-    if (/* u is out of bounds — check if u is a valid index into nodes */ true) {
+    if (u >= nodes.size()) {
         cerr << "Attempting to update connection between " << v << " and " << u << " with weight " << w << " but " << u << " does not exist" << endl;
         exit(1);
     }
 
-    return; //stub
+
+    if (adjacencyList[v].find(u) == adjacencyList[v].end()){
+        adjacencyList[v][u].weight = w;
+    }else{
+        Connection c;
+        c.source = v;
+        c.dest = u;
+        c.weight = w;
+        adjacencyList[v][u] = c;
+    }
+    
+
 }
 
 // STUDENT TODO: IMPLEMENT
 void Graph::clear() {
-    return; //stub
+
+    for (NodeInfo* n : nodes){
+        delete n;
+    }
+
 }
 
 
@@ -194,7 +227,7 @@ ostream& operator<<(ostream& out, const Graph& g) {
     // https://dreampuf.github.io/GraphvizOnline/#digraph%20G%20%7B%0A%0A%20%20subgraph%20cluster_0%20%7B%0A%20%20%20%20style%3Dfilled%3B%0A%20%20%20%20color%3Dlightgrey%3B%0A%20%20%20%20node%20%5Bstyle%3Dfilled%2Ccolor%3Dwhite%5D%3B%0A%20%20%20%20a0%20-%3E%20a1%20-%3E%20a2%20-%3E%20a3%3B%0A%20%20%20%20label%20%3D%20%22process%20%231%22%3B%0A%20%20%7D%0A%0A%20%20subgraph%20cluster_1%20%7B%0A%20%20%20%20node%20%5Bstyle%3Dfilled%5D%3B%0A%20%20%20%20b0%20-%3E%20b1%20-%3E%20b2%20-%3E%20b3%3B%0A%20%20%20%20label%20%3D%20%22process%20%232%22%3B%0A%20%20%20%20color%3Dblue%0A%20%20%7D%0A%20%20start%20-%3E%20a0%3B%0A%20%20start%20-%3E%20b0%3B%0A%20%20a1%20-%3E%20b3%3B%0A%20%20b2%20-%3E%20a3%3B%0A%20%20a3%20-%3E%20a0%3B%0A%20%20a3%20-%3E%20end%3B%0A%20%20b3%20-%3E%20end%3B%0A%0A%20%20start%20%5Bshape%3DMdiamond%5D%3B%0A%20%20end%20%5Bshape%3DMsquare%5D%3B%0A%7D
     return out;
 }
-
+//only grows?
 void Graph::resize(int size) {
     this->size = size;
     adjacencyList.resize(size);

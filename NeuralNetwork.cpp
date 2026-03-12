@@ -9,37 +9,42 @@ using namespace std;
 
 // STUDENT TODO: IMPLEMENT
 void NeuralNetwork::eval() {
-    //stub
+    evaluating = true;
 }
 
 // STUDENT TODO: IMPLEMENT
 void NeuralNetwork::train() {
-    //stub
+    evaluating = false;
 }
 
 // STUDENT TODO: IMPLEMENT
 void NeuralNetwork::setLearningRate(double lr) {
-    //stub
+    learningRate = lr;
 }
 
 // STUDENT TODO: IMPLEMENT
-void NeuralNetwork::setInputNodeIds(std::vector<int> inputNodeIds) {
-    //stub
+void NeuralNetwork::setInputNodeIds(std::vector<int> newInputNodeIds) {
+    inputNodeIds = newInputNodeIds;
 }
 
 // STUDENT TODO: IMPLEMENT
-void NeuralNetwork::setOutputNodeIds(std::vector<int> outputNodeIds) {
-    //stub
+void NeuralNetwork::setOutputNodeIds(std::vector<int> newOutputNodeIds) {
+
+    for ( int id : newOutputNodeIds){
+        nodes.at(id)->postActivationValue = 0.5; //i hate whoever decided this was a thing
+    }
+
+    outputNodeIds = newOutputNodeIds;
 }
 
 // STUDENT TODO: IMPLEMENT
 vector<int> NeuralNetwork::getInputNodeIds() const {
-    return vector<int>(); //stub
+    return inputNodeIds;
 }
 
 // STUDENT TODO: IMPLEMENT
 vector<int> NeuralNetwork::getOutputNodeIds() const {
-    return vector<int>(); //stub
+    return outputNodeIds;
 }
 
 // STUDENT TODO: IMPLEMENT
@@ -48,6 +53,8 @@ vector<double> NeuralNetwork::predict(DataInstance instance) {
     vector<double> input = instance.x;
 
     // error checking : size mismatch
+
+    //cout << "a" << endl;
     if (input.size() != inputNodeIds.size()) {
         cerr << "input size mismatch." << endl;
         cerr << "\tNeuralNet expected input size: " << inputNodeIds.size() << endl;
@@ -55,12 +62,102 @@ vector<double> NeuralNetwork::predict(DataInstance instance) {
         return vector<double>();
     }
 
+    //layers
+    //yes so layers[0] = inputNodeIds i think
+
+    //cout << "b" << endl;
+
+    int layerc = layers.size();
+    queue<int> bfsq;
+    //queue<int> bfsq2;
+
+    //cout << layerc << endl;
+    
+    for (int i = 0; i < inputNodeIds.size(); i++){
+        //cout << inputNodeIds[i] << " " << input[i] << endl;
+
+        int id = inputNodeIds[i];
+        double value = input[id];
+
+        NodeInfo* curr = (nodes.at(id));
+
+        curr->postActivationValue = value;
+        bfsq.push(id);
+    }
+    
+    /*
+    for (int id : inputNodeIds) {
+        //process input value
+        NodeInfo* curr = (nodes.at(id));
+
+        //we set post activation directly bc its the starting thing and it also has no bias
+        curr->postActivationValue = input[id];
+
+        bfsq.push(id);
+    }
+    */
+
+    //so we set up our initial queue, now it's time for a while loop
+    //we will go down 1 level and stuff it all in a queue. 
+    //Before going to the next level, let's consolidate the values we iterated through
+    //cout << "c" << endl;
+
+    for (int i = 0; i < layerc-1; i++){
+        vector<int> currentLayer = layers[i];
+        vector<int> nextLayer = layers[i+1];
+
+        //cout << "d" << endl;
+
+        while (!bfsq.empty()){
+            int startNodeIndex = bfsq.front();
+
+            NodeInfo* startNode = (nodes.at(startNodeIndex));
+            double startNodeRawVal = startNode->postActivationValue;
+
+            //for every node in the next layer, add the value from the current node to it times the weighted value
+            for (int j = 0; j < nextLayer.size(); j++){
+                int endNodeIndex = nextLayer[j];
+
+                //now get the edge with the two known indicies
+                Connection edge = adjacencyList[startNodeIndex][endNodeIndex];
+
+                NodeInfo* endNode = (nodes.at(endNodeIndex));
+
+                endNode->preActivationValue += startNodeRawVal * edge.weight;
+
+            }
+
+            bfsq.pop();
+        }
+        
+        //create the new queue for the next iteration
+        //also activate all these nodes
+        //cout << "e" << endl;
+
+        for (int j = 0; j < nextLayer.size(); j++){
+            int endNodeIndex = nextLayer[j];
+            NodeInfo* curr = (nodes.at(endNodeIndex));
+            curr->preActivationValue += curr->bias;
+            curr->activate();
+            
+            bfsq.push(endNodeIndex);
+        }
+        
+        //cout << "f" << endl;
+    }
+
+    //now after this, bfsq contains the output nodes only with proper postActivationValues
+
+
     // BFT implementation goes here.
     // Note: before traversal begins, each input value in `input` must be loaded into
     // the corresponding input node's postActivationValue. Input nodes are not activated —
     // their value is passed forward directly.
     // Use visitPredictNode and visitPredictNeighbor to handle the neural network math
     // at each step of your traversal.
+
+    //so for each value in 'input' there is a corresponding input node...
+
 
     vector<double> output;
     for (int i = 0; i < outputNodeIds.size(); i++) {
@@ -79,61 +176,106 @@ vector<double> NeuralNetwork::predict(DataInstance instance) {
     }
     return output;
 }
-// STUDENT TODO: IMPLEMENT
+
+//Root function of the self-evaluation chain during model training.
 bool NeuralNetwork::contribute(double y, double p) {
 
-    // DFT implementation goes here.
-    // This function initiates the recursion by calling the recursive helper
-    // starting from each input layer node.
-    // Note: input layer nodes do not have a bias to update, so visitContributeNode
-    // should not be called on them.
-    // The contributions map acts as your "visited" set and also stores each node's
-    // computed contribution so it is not recomputed if reached by multiple paths.
+    //for each input node, start a DFT to eventually backtrack and acumulates connection weight and node bias deltas for later application.
+    for (int id : layers[0]) { contribute(id,y,p); }
 
-
-    flush();
+    //By now we have completed all DFTs through the Neural Network.
+    //This function empties the vector of saved contributeOuts
+    //It also resets the current values of all nodes. (preactivationval == postactivationval == 0)
+    flush(); 
 
     return true;
 }
-// STUDENT TODO: IMPLEMENT
+
+//Recursive helper function for the previous function of the same name.
 double NeuralNetwork::contribute(int nodeId, const double& y, const double& p) {
-    visitContributeStart(nodeId); // don't remove this line, used for visualization
-    // incomingContribution: the error signal returned by a recursive call on a neighbor.
+    // don't remove this line, used for visualization
+    visitContributeStart(nodeId); 
+    
+    //declaration of important values
     double incomingContribution = 0;
-    // outgoingContribution: built up from this node's neighbors, then scaled by
-    // this node's activation derivative before being returned to the previous layer.
     double outgoingContribution = 0;
-    NodeInfo* currNode = nodes.at(nodeId);
 
-    // If this node is already in the contributions map, return its stored value immediately.
+    //iterate through each node this self has an outgoing connection to.
+    //if there are none, skip straight to backpropagation.
+    for (pair<const int, Connection>& edge : adjacencyList[nodeId]){
+        //node here refers a node that self has an outgoing connection to.
 
-    if (adjacencyList.at(nodeId).empty()) {
-        // Base case: output node (no outgoing connections).
-        // Seeds the backward pass with the initial error signal.
-        // You do not need to understand this derivation.
-        outgoingContribution = -1 * ((y - p) / (p * (1 - p)));
+        //if node was already processed in another recursive branch, 
+        //copy the precomputed contribution instead of running that again.
+        if (contributions.find(edge.second.dest) != contributions.end()){
+            incomingContribution = contributions[edge.second.dest];
+        //Otherwise, recurse to get the contribution from node
+        } else {
+            incomingContribution = contribute(edge.second.dest,y,p);
+        }
+        //Once we have this contribution, we can compute the delta of the connection between node and self using this function
+        visitContributeNeighbor(edge.second, incomingContribution, outgoingContribution);
     }
 
-    // Before returning, store outgoingContribution in the contributions map.
+    //After recieving some sort of incoming contribution, or if we have no neighbors (self is output node), we need to calculate our outgoing contribution
+    //check if self is an output node, outgoing contribution is calculated directly from this formula
+    if (adjacencyList.at(nodeId).empty()) {
+        outgoingContribution = -1 * ((y - p) / (p * (1 - p)));
+    }
+    //For all nodes, process outgoing contribution using the provided method.
+    visitContributeNode(nodeId, outgoingContribution);
+    //Save this outgoing contribution, so we dont increment it twice and there's less overall recursive processing.
+    contributions[nodeId] = outgoingContribution;
 
+    //return the outgoing contribution, it will become the incomingContribution of another node.
     return outgoingContribution;
 }
-// STUDENT TODO: IMPLEMENT
+
+//applies the deltas of all nodes and connections onto their respective bias and weight values.
 bool NeuralNetwork::update() {
-    // apply the derivative contributions
+    //BFT, same one used in prediction.
+    //First, create a queue for travering breadth and put all the input nodes inside it.
+    int layerc = layers.size();
+    queue<int> bfsq;
+    for (int id : layers[0]) {
+        bfsq.push(id);
+    }
+    //iterate through each later (breadth)
+    for (int i = 0; i < layerc; i++){
+        while (!bfsq.empty()){
+            //get the node at the front of the queue
+            int nid = bfsq.front();
+            NodeInfo* n = (nodes.at(nid));
 
-    // traverse the graph in anyway you want. 
-    // Each node has a delta term 
-    // Each connection has a delta term
-
-    // use the formulas for each update
-    // bias update: bias = bias - (learningRate * delta)
-    // weight update: weight = weight - (learningRate * delta)
-    // reset the delta term for each node and connection to zero.
-    
+            //apply delta of this node onto its bias, the formula is bias = bias - (learningRate * delta)
+            //but dont modify the bias of input nodes
+            if(i != 0){
+                n -> bias -= n -> delta * learningRate;
+                n -> delta = 0;
+            }
+            //for every outgoing connection of this node, apply delta of this connection onto its weight. The formula is weight = weight - (learningRate * delta)
+            for (pair<const int, Connection>& c : (adjacencyList[nid])){
+                c.second.weight -= c.second.delta * learningRate;
+                c.second.delta = 0;
+            }
+            //pop this node off the queue, so we can process the next node in the layer
+            bfsq.pop();
+        }
+        
+        //if there are more layers, push all the layer's nodes to the queue
+        //this is the next breadth we are traversing
+        if (i+1 < layers.size()){
+            for (int j = 0; j < layers[i+1].size(); j++){
+                int endNodeIndex = layers[i+1][j];
+                bfsq.push(endNodeIndex);
+            }
+        }
+    }
+    //Once again, this function empties the vector of saved contributeOuts
+    //It also resets the current values of all nodes. (preactivationval == postactivationval == 0)
     flush();
+    //return success
     return true;
-    
 }
 
 
