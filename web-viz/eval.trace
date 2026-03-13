@@ -1,0 +1,5 @@
+{"type":"run_start","meta":{"networkFile":"./models/sample.init","trainFile":"./data/sample.csv","testFile":"./data/sample.csv","learningRate":0.001}}
+{"type":"initial_graph","nodes":[{"id":0,"layer":0,"activation":"identity"},{"id":1,"layer":0,"activation":"identity"},{"id":2,"layer":1,"activation":"ReLU"},{"id":3,"layer":1,"activation":"ReLU"},{"id":4,"layer":1,"activation":"ReLU"},{"id":5,"layer":2,"activation":"sigmoid"}],"edges":[{"source":0,"dest":4,"initialWeight":2.2},{"source":0,"dest":3,"initialWeight":-3},{"source":0,"dest":2,"initialWeight":1},{"source":1,"dest":4,"initialWeight":-1.1},{"source":1,"dest":3,"initialWeight":0},{"source":1,"dest":2,"initialWeight":6},{"source":2,"dest":5,"initialWeight":0},{"source":3,"dest":5,"initialWeight":3.4},{"source":4,"dest":5,"initialWeight":2}]}
+{"type":"step_start","step":0,"phase":"forward","input":[-2.79017,2.43854],"label":1}
+{"type":"loss","step":0,"scope":"instance","value":9.999999722e-10}
+{"type":"run_end","summary":{"epochs":0,"finalAccuracy":0.4666666667}}

@@ -67,7 +67,7 @@ vector<double> NeuralNetwork::predict(DataInstance instance) {
 
     //cout << "b" << endl;
 
-    int layerc = layers.size();
+    //int layerc = layers.size();
     queue<int> bfsq;
     //queue<int> bfsq2;
 
@@ -77,7 +77,7 @@ vector<double> NeuralNetwork::predict(DataInstance instance) {
         //cout << inputNodeIds[i] << " " << input[i] << endl;
 
         int id = inputNodeIds[i];
-        double value = input[id];
+        double value = input[i];
 
         NodeInfo* curr = (nodes.at(id));
 
@@ -85,46 +85,24 @@ vector<double> NeuralNetwork::predict(DataInstance instance) {
         bfsq.push(id);
     }
     
-    /*
-    for (int id : inputNodeIds) {
-        //process input value
-        NodeInfo* curr = (nodes.at(id));
 
-        //we set post activation directly bc its the starting thing and it also has no bias
-        curr->postActivationValue = input[id];
+    bool nextExists = (adjacencyList[bfsq.front()].empty() == false);
+    
+    while (nextExists) {
 
-        bfsq.push(id);
-    }
-    */
-
-    //so we set up our initial queue, now it's time for a while loop
-    //we will go down 1 level and stuff it all in a queue. 
-    //Before going to the next level, let's consolidate the values we iterated through
-    //cout << "c" << endl;
-
-    for (int i = 0; i < layerc-1; i++){
-        vector<int> currentLayer = layers[i];
-        vector<int> nextLayer = layers[i+1];
-
-        //cout << "d" << endl;
-
+        int fol = bfsq.front();
         while (!bfsq.empty()){
             int startNodeIndex = bfsq.front();
 
             NodeInfo* startNode = (nodes.at(startNodeIndex));
             double startNodeRawVal = startNode->postActivationValue;
 
-            //for every node in the next layer, add the value from the current node to it times the weighted value
-            for (int j = 0; j < nextLayer.size(); j++){
-                int endNodeIndex = nextLayer[j];
-
-                //now get the edge with the two known indicies
-                Connection edge = adjacencyList[startNodeIndex][endNodeIndex];
+            for (pair<const int, Connection>& c : adjacencyList[startNodeIndex]){
+                int endNodeIndex = c.first;
+                Connection edge = c.second;
 
                 NodeInfo* endNode = (nodes.at(endNodeIndex));
-
                 endNode->preActivationValue += startNodeRawVal * edge.weight;
-
             }
 
             bfsq.pop();
@@ -134,16 +112,19 @@ vector<double> NeuralNetwork::predict(DataInstance instance) {
         //also activate all these nodes
         //cout << "e" << endl;
 
-        for (int j = 0; j < nextLayer.size(); j++){
-            int endNodeIndex = nextLayer[j];
-            NodeInfo* curr = (nodes.at(endNodeIndex));
-            curr->preActivationValue += curr->bias;
-            curr->activate();
-            
-            bfsq.push(endNodeIndex);
+        if (adjacencyList[fol].empty()){
+            nextExists = false;
+        } else {
+            for (pair<const int, Connection>& c : adjacencyList[fol]){
+                int endNodeIndex = c.first;
+                NodeInfo* curr = (nodes.at(endNodeIndex));
+                curr->preActivationValue += curr->bias;
+                curr->activate();
+                
+                bfsq.push(endNodeIndex);
+            }
         }
-        
-        //cout << "f" << endl;
+      
     }
 
     //now after this, bfsq contains the output nodes only with proper postActivationValues

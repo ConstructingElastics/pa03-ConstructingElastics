@@ -146,12 +146,12 @@ void test_algorithm() {
     NodeInfo n4("ReLU", 0, 0.11);
     NodeInfo n5("identity", 0, 0);
 
-    nn.updateNode(0, n0);
-    nn.updateNode(1, n1);
-    nn.updateNode(2, n2);
-    nn.updateNode(3, n3);
-    nn.updateNode(4, n4);
-    nn.updateNode(5, n5);
+    nn.updateNode(0, n0); //L2
+    nn.updateNode(1, n1); //L2
+    nn.updateNode(2, n2); //input L1
+    nn.updateNode(3, n3); //output L3
+    nn.updateNode(4, n4); //L2
+    nn.updateNode(5, n5); //input L1
 
     nn.updateConnection(2, 1, 0.1);
     nn.updateConnection(2, 4, 0.2);
