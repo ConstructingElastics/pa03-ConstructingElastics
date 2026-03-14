@@ -131,6 +131,7 @@ void test_structure() {
     stringstream ssActual;
     ssExpected << fin.rdbuf();
     ssActual << nn;
+    //cout << ssActual.str() << endl;
     ASSERT_EQUAL(ssActual.str(), ssExpected.str(), "test_structure");
 }
 

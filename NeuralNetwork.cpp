@@ -568,7 +568,7 @@ void NeuralNetwork::saveModel(string filename) {
 
         for (auto j = adjacencyList.at(i).begin(); j != adjacencyList.at(i).end(); j++) {
             numWeights++;
-            weightStream << j->second.source << " " << j->first << " " << j->second.weight << endl;
+            weightStream << j->second.source << " " << j->second.dest << " " << j->second.weight << endl;
         }
     }
 
