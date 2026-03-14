@@ -177,6 +177,10 @@ void test_algorithm() {
     double p1 = nn.predict(di).at(0);
     double p2 = nn_2.predict(di).at(0);
 
+    //stringstream ssActual;
+    //ssActual << nn;
+    //cout << ssActual.str() << endl;
+
     ASSERT_EQUAL(p1, 0.757863, "test_algorithm:1");
     ASSERT_EQUAL(p2, 0.757863, "test_algorithm:2");
 }

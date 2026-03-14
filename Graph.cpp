@@ -136,6 +136,8 @@ void Graph::updateConnection(int v, int u, double w) {
 
     if (adjacencyList[v].find(u) == adjacencyList[v].end()){
         adjacencyList[v][u].weight = w;
+        adjacencyList[v][u].source = v;
+        adjacencyList[v][u].dest = u;
     }else{
         Connection c;
         c.source = v;
@@ -207,7 +209,7 @@ ostream& operator<<(ostream& out, const Graph& g) {
     out << "digraph G {" << endl;
     for (int i = 0; i < g.adjacencyList.size(); i++) {
         for (auto j = g.adjacencyList.at(i).begin(); j != g.adjacencyList.at(i).end(); j++) {
-            out << "\t" << i << " -> " << j->first << "[label=\"" << j->second.weight << "\"]" << endl;
+            out << "\t" << i << " -> " << j->second.dest << "[label=\"" << j->second.weight << "\"]" << endl;
         }
     }
     out << "}" << endl;
