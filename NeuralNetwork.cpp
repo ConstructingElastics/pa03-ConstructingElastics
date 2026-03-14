@@ -255,6 +255,8 @@ bool NeuralNetwork::update() {
     //Once again, this function empties the vector of saved contributeOuts
     //It also resets the current values of all nodes. (preactivationval == postactivationval == 0)
     flush();
+
+    
     //return success
     return true;
 }
@@ -566,7 +568,7 @@ void NeuralNetwork::saveModel(string filename) {
 
         for (auto j = adjacencyList.at(i).begin(); j != adjacencyList.at(i).end(); j++) {
             numWeights++;
-            weightStream << j->second.source << " " << j->second.dest << " " << j->second.weight << endl;
+            weightStream << j->second.source << " " << j->first << " " << j->second.weight << endl;
         }
     }
 

@@ -173,10 +173,7 @@ void test_algorithm() {
 
     DataInstance di(input, 0);
 
-    cout << "8" << endl;
     double p1 = nn.predict(di).at(0);
-
-    cout << "9" << endl;
     double p2 = nn_2.predict(di).at(0);
 
     ASSERT_EQUAL(p1, 0.757863, "test_algorithm:1");
